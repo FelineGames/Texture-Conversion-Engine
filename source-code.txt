@@ -38,16 +38,35 @@ for /f "tokens=1,2 delims==" %%A in (whitelist.txt) do (
     set "source=%%A"
     set "dest=%%B"
 
-    :: Look in "textures\items" and "textures\blocks"
-    for %%P in ("textures\items" "textures\blocks") do (
-        if exist "%%~P\!source!" (
-            echo Converting: !source! → !dest!
-            copy /y "%%~P\!source!" "%output%\!dest!" >nul
-        )
-    )
+    :: Use call + delayed expansion to safely handle copied flag
+    call :ProcessFile
 )
 
 echo.
 echo --- Conversion Complete! ---
 echo All converted files are now inside "%output%" folder.
 pause
+exit /b
+
+:ProcessFile
+set "copied="
+for %%P in (
+    "textures\items"
+    "textures\blocks"
+    "textures\ui"
+    "textures\gui"
+    "textures\entity"
+    "textures\map"
+    "textures\painting"
+    "textures\misc"
+    "textures\environment"
+) do (
+    if exist "%%~P\!source!" (
+        if not defined copied (
+            echo Converting: !source! → !dest!
+            copy /y "%%~P\!source!" "%output%\!dest!" >nul
+            set "copied=1"
+        )
+    )
+)
+exit /b
